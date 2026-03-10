@@ -22,7 +22,7 @@ jobs:
         zip -r output/app.apk app
 
     - name: Upload APK
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: apk
         path: output/app.apk
