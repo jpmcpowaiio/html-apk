@@ -1,4 +1,4 @@
-name: Build APK
+name: Build Android APK
 
 on:
   workflow_dispatch:
@@ -8,21 +8,48 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Download repository
-      uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-    - name: Prepare HTML
-      run: |
-        mkdir -p app/src/main/assets
-        cp index.html app/src/main/assets/index.html
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
 
-    - name: Create APK file
-      run: |
-        mkdir output
-        zip -r output/app.apk app
+      - name: Install Android SDK
+        uses: android-actions/setup-android@v3
 
-    - name: Upload APK
-      uses: actions/upload-artifact@v4
-      with:
-        name: apk
-        path: output/app.apk
+      - name: Create project
+        run: |
+          mkdir -p app/src/main/assets
+          mkdir -p app/src/main/java/com/example/app
+
+          cp index.html app/src/main/assets/index.html
+
+          echo "package com.example.app;
+          import android.app.Activity;
+          import android.os.Bundle;
+          import android.webkit.WebView;
+
+          public class MainActivity extends Activity {
+              @Override
+              protected void onCreate(Bundle savedInstanceState) {
+                  super.onCreate(savedInstanceState);
+                  WebView web = new WebView(this);
+                  web.getSettings().setJavaScriptEnabled(true);
+                  web.loadUrl(\"file:///android_asset/index.html\");
+                  setContentView(web);
+              }
+          }" > app/src/main/java/com/example/app/MainActivity.java
+
+      - name: Package APK
+        run: |
+          mkdir output
+          zip -r output/app.apk app
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: apk
+          path: output/app.apk
