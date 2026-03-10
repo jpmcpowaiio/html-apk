@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>JPM Unified Executive Suite</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --jpm-gold: #AD936E;
+            --jpm-black: #000000;
+            --bg-grey: #f8f9fa;
+            --white: #ffffff;
+            --success: #2e7d32;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { background: var(--jpm-black); color: #333; height: 100vh; overflow: hidden; }
+
+        /* --- SECURE BOOT --- */
+        #boot-loader {
+            position: fixed; top: 0; width: 100%; height: 100%; background: var(--jpm-black);
+            z-index: 10000; display: flex; flex-direction: column; align-items: center; justify-content: center;
+        }
+        .spinner { width: 40px; height: 40px; border: 3px solid #111; border-top: 3px solid var(--jpm-gold); border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .boot-text { color: var(--jpm-gold); font-family: monospace; font-size: 10px; margin-top: 20px; letter-spacing: 3px; }
+
+        /* --- LOGIN SCREEN --- */
+        #login-screen {
+            position: fixed; top: 0; width: 100%; height: 100%; z-index: 9000;
+            background: linear-gradient(rgba(0,0,0,0.85), rgba(0,0,0,0.85)), url('https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=1000') center/cover;
+            display: none; align-items: center; justify-content: center;
+        }
+        .login-card { width: 85%; max-width: 360px; text-align: center; color: white; }
+        .login-card h1 { font-family: 'Playfair Display'; font-size: 2.2rem; margin-bottom: 10px; }
+        .login-input { width: 100%; padding: 16px; margin: 12px 0; background: rgba(255,255,255,0.05); border: 1px solid #333; color: white; outline: none; border-radius: 8px; font-size: 14px; }
+        .login-btn { width: 100%; padding: 16px; background: var(--jpm-gold); border: none; font-weight: 700; cursor: pointer; border-radius: 8px; margin-top: 15px; letter-spacing: 1px; }
+
+        /* --- APP SHELL --- */
+        #app-shell { display: none; height: 100vh; flex-direction: column; background: var(--bg-grey); }
+        
+        header { background: var(--white); padding: 18px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; z-index: 100; }
+        .logo-text { font-family: 'Playfair Display'; font-weight: 700; color: var(--jpm-black); font-size: 20px; }
+
+        .content-area { flex: 1; overflow: hidden; position: relative; }
+        
+        /* --- IFRAME PORTALS --- */
+        .portal-frame { width: 100%; height: 100%; border: none; display: none; position: absolute; top: 0; left: 0; }
+        .portal-frame.active { display: block; }
+
+        /* --- DASHBOARD SECTION --- */
+        .view-section { padding: 20px; display: none; height: 100%; overflow-y: auto; }
+        .view-section.active { display: block; }
+        .card { background: white; padding: 25px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.03); border: 1px solid #efefef; }
+        .status-pill { background: #e8f5e9; color: var(--success); padding: 5px 12px; font-size: 11px; font-weight: 700; border-radius: 20px; }
+
+        /* --- NAVIGATION DOCK --- */
+        nav { 
+            position: fixed; bottom: 0; width: 100%; background: var(--white); 
+            display: flex; justify-content: space-around; padding: 12px 0 25px 0; /* Padding for mobile bottom bar */
+            border-top: 1px solid #eee; z-index: 1000;
+        }
+        .nav-item { text-align: center; color: #bbb; cursor: pointer; flex: 1; transition: 0.2s; }
+        .nav-item.active { color: var(--jpm-black); }
+        .nav-item span { display: block; font-size: 10px; font-weight: 700; margin-top: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+        .feature-row { display: flex; justify-content: space-between; align-items: center; margin-top: 15px; font-size: 13px; color: #444; }
+    </style>
+</head>
+<body onload="initApp()">
+
+    <div id="boot-loader">
+        <div class="spinner"></div>
+        <div class="boot-text" id="load-msg">ESTABLISHING SECURE GATEWAY...</div>
+    </div>
+
+    <div id="login-screen">
+        <div class="login-card">
+            <h1>J.P. Morgan</h1>
+            <p style="font-size: 10px; letter-spacing: 3px; color: var(--jpm-gold); margin-bottom: 40px; font-weight: 600;">IDENTITY MANAGEMENT</p>
+            <input type="text" id="uid" class="login-input" placeholder="Personnel ID (Sanvi Aryan)">
+            <input type="password" id="upass" class="login-input" placeholder="Security Token">
+            <button class="login-btn" onclick="verifyLogin()">AUTHORIZE ACCESS</button>
+        </div>
+    </div>
+
+    <div id="app-shell">
+        <header>
+            <div class="logo-text">J.P.M. Executive</div>
+            <div style="font-size: 10px; text-align: right; color: var(--success);"><b>SECURE SESSION</b><br>CONNECTED</div>
+        </header>
+
+        <div class="content-area">
+            
+            <div id="view-home" class="view-section active">
+                <div class="card">
+                    <span style="font-size: 10px; font-weight: 800; color: var(--jpm-gold); letter-spacing: 1px;">PERSONNEL RECORD</span>
+                    <h2 style="font-family: 'Playfair Display'; margin-top: 8px; font-size: 26px;">Sanvi Aryan</h2>
+                    <p style="font-size: 13px; color: #777; margin-top: 4px;">Senior Executive Track | <span class="status-pill">ACTIVE</span></p>
+                </div>
+
+                <div class="card">
+                    <h4 style="font-size: 14px; margin-bottom: 15px; border-bottom: 1px solid #f5f5f5; padding-bottom: 10px;">Residential Logistics</h4>
+                    <div class="feature-row"><span>Premises:</span> <b>Oshiwara, Andheri W.</b></div>
+                    <div class="feature-row"><span>Status:</span> <b style="color: var(--success);">Verified</b></div>
+                    <div class="feature-row"><span>Move-In:</span> <b>13-03-2026</b></div>
+                </div>
+
+                <div class="card" style="background: #fdfaf5;">
+                    <h4 style="font-size: 14px; margin-bottom: 15px;">Pending Verifications</h4>
+                    <p style="font-size: 12px; color: #666; line-height: 1.6;">Guardian consent documentation is required for the finalization of regional state policy compliance.</p>
+                </div>
+            </div>
+
+            <iframe id="frame-nirlon" class="portal-frame" src="https://jpmcpowaiio.github.io/nirlongoregaon/"></iframe>
+            <iframe id="frame-giftic" class="portal-frame" src="https://jpmcpowaiio.github.io/giftic/"></iframe>
+
+        </div>
+
+        <nav>
+            <div class="nav-item active" onclick="switchTab('home', this)">
+                <div style="font-size: 22px;">🏛️</div>
+                <span>Hub</span>
+            </div>
+            <div class="nav-item" onclick="switchTab('nirlon', this)">
+                <div style="font-size: 22px;">👤</div>
+                <span>Portal</span>
+            </div>
+            <div class="nav-item" onclick="switchTab('giftic', this)">
+                <div style="font-size: 22px;">🎁</div>
+                <span>Giftic</span>
+            </div>
+        </nav>
+    </div>
+
+    <script>
+        function initApp() {
+            setTimeout(() => {
+                document.getElementById('load-msg').innerText = "SYNCHRONIZING PORTALS...";
+                setTimeout(() => {
+                    document.getElementById('boot-loader').style.display = 'none';
+                    document.getElementById('login-screen').style.display = 'flex';
+                }, 1200);
+            }, 1000);
+        }
+
+        function verifyLogin() {
+            const id = document.getElementById('uid').value.toLowerCase();
+            if(id.includes('sanvi')) {
+                const btn = document.querySelector('.login-btn');
+                btn.innerText = "AUTHENTICATING...";
+                setTimeout(() => {
+                    document.getElementById('login-screen').style.display = 'none';
+                    document.getElementById('app-shell').style.display = 'flex';
+                }, 1000);
+            } else {
+                alert("Identity verification failed. Please check Personnel ID.");
+            }
+        }
+
+        function switchTab(tab, el) {
+            // UI Feedback
+            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+            el.classList.add('active');
+
+            // View Management
+            document.getElementById('view-home').classList.remove('active');
+            document.getElementById('frame-nirlon').classList.remove('active');
+            document.getElementById('frame-giftic').classList.remove('active');
+
+            if(tab === 'home') document.getElementById('view-home').classList.add('active');
+            if(tab === 'nirlon') document.getElementById('frame-nirlon').classList.add('active');
+            if(tab === 'giftic') document.getElementById('frame-giftic').classList.add('active');
+        }
+    </script>
+</body>
+</html>
